@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <color name="color_primary">#F44336</color>
-    <color name="color_primary_dark">#D32F2F</color>
-    <color name="color_accent">#3479c4</color>
+    <color name="color_primary">#FF9800</color>
+    <color name="color_primary_dark">#F57C00</color>
+    <color name="color_accent">#FF9800</color>
     <color name="fosdem_blue_translucent">#663479c4</color>
     <color name="secondary_text">#323232</color>
     <color name="main_menu_background">#fffafafa</color>
