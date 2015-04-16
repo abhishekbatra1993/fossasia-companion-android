@@ -27,7 +27,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String TABLE_NAME_SPEAKER_EVENT_RELATION = "speaker_event_relation";
     private static final String TABLE_SPEAKER_EVENT_RELATION = "CREATE TABLE " + TABLE_NAME_SPEAKER_EVENT_RELATION
             + " (speaker TEXT, event_id INTEGER, event TEXT);";
-    public static final String TABLE_NAME_TRACK = "tracks";
+    public static final String TABLE_NAME_TRACK = "tracks123";
     public static final String TABLE_COLUMN_NAME = "track_name";
     public static final String TABLE_COLOUMN_INFORMATION = "information";
     private static final String TABLE_TRACKS = "CREATE TABLE " + TABLE_NAME_TRACK
@@ -42,14 +42,21 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String TABLE_VENUE = "CREATE TABLE " + TABLE_NAME_VENUE
             + " (track TEXT, venue TEXT, map TEXT, room TEXT, link TEXT, address TEXT, how_to_reach TEXT);";
 
-    private static final String DATABASE_NAME = "fosdem.sqlite5";
+    private static final String DATABASE_NAME = "fosdem.sqlite6";
     private static final int DATABASE_VERSION = 1;
 
+    private String dynamicTableTracks;
 
 
+
+    public DatabaseHelper(Context context, String dynamicTracks) {
+        super(context, DATABASE_NAME, null, DATABASE_VERSION);
+        this.dynamicTableTracks = dynamicTracks;
+    }
 
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
+        this.dynamicTableTracks = null;
     }
 
     @Override
@@ -96,6 +103,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         database.execSQL(TABLE_TRACKS);
         database.execSQL(TABLE_TRACK_VENUE);
         database.execSQL(TABLE_VENUE);
+//        if(dynamicTableTracks != null) {
+//            database.execSQL(dynamicTableTracks);
+//        }
     }
 
     @Override

@@ -10,6 +10,7 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 
 import org.fossasia.api.FossasiaUrls;
+import org.fossasia.model.Field;
 import org.fossasia.model.FossasiaEvent;
 import org.fossasia.model.Speaker;
 import org.fossasia.model.Sponsor;
@@ -53,6 +54,54 @@ public class JsonToDatabase {
         fetchTracks(FossasiaUrls.TRACKS_URL);
         startTrackUrlFetch(FossasiaUrls.VERSION_TRACK_URL);
         SponsorUrl(FossasiaUrls.SPONSOR_URL);
+//        fetchFields();
+
+    }
+
+    private void fetchFields() {
+        RequestQueue queue = VolleySingleton.getReqQueue(context);
+        StringRequest stringRequest = new StringRequest(FossasiaUrls.FIELD_URL, new Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                JSONArray jsonArray1 = removePaddingFromString(response);
+                String fieldName;
+                String type;
+                String defaultValue;
+                Sponsor temp;
+                ArrayList<Field> fields = new ArrayList<>();
+                for (int i = 0; i < jsonArray1.length(); i++) {
+
+                    try {
+                        fieldName = jsonArray1.getJSONObject(i).getJSONArray("c").getJSONObject(0).getString("v");
+                        type = jsonArray1.getJSONObject(i).getJSONArray("c").getJSONObject(1).getString("v");
+                        defaultValue = jsonArray1.getJSONObject(i).getJSONArray("c").getJSONObject(2).getString("v");
+
+                        Field field = new Field(fieldName, type, defaultValue);
+                        fields.add(field);
+
+                    } catch (JSONException e) {
+
+                        // Log.e(TAG, "JSON error: " + e.getMessage() + "\nResponse: " + response);
+
+                    }
+                }
+                Log.e(TAG, Field.createDatabaseQuery(fields, "dynamictalks"));
+
+                DatabaseHelper dbhe = new DatabaseHelper(context, Field.createDatabaseQuery(fields, "ghvjskn"));
+
+            }
+        }
+                , new ErrorListener() {
+
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                //  Log.d(TAG, "VOLLEY ERROR :" + error.getMessage());
+
+            }
+        }
+
+        );
+        queue.add(stringRequest);
 
     }
 
@@ -70,21 +119,20 @@ public class JsonToDatabase {
                 String url;
                 Sponsor temp;
 
-                for (int i=0;i<jsonArray1.length();i++){
+                for (int i = 0; i < jsonArray1.length(); i++) {
 
-                    try{
+                    try {
                         name = jsonArray1.getJSONObject(i).getJSONArray("c").getJSONObject(0).getString("v");
                         img = jsonArray1.getJSONObject(i).getJSONArray("c").getJSONObject(1).getString("v");
                         url = jsonArray1.getJSONObject(i).getJSONArray("c").getJSONObject(2).getString("v");
 
-                        temp = new Sponsor((i+1),name,img,url);
+                        temp = new Sponsor((i + 1), name, img, url);
                         String ab = temp.generatesql();
                         queries.add(ab);
-                        Log.d(TAG,ab);
-                    }
-                    catch ( JSONException e){
+                        Log.d(TAG, ab);
+                    } catch (JSONException e) {
 
-                       // Log.e(TAG, "JSON error: " + e.getMessage() + "\nResponse: " + response);
+                        // Log.e(TAG, "JSON error: " + e.getMessage() + "\nResponse: " + response);
 
                     }
                 }
@@ -94,7 +142,7 @@ public class JsonToDatabase {
 
             @Override
             public void onErrorResponse(VolleyError error) {
-              //  Log.d(TAG, "VOLLEY ERROR :" + error.getMessage());
+                //  Log.d(TAG, "VOLLEY ERROR :" + error.getMessage());
 
             }
         }
@@ -159,13 +207,13 @@ public class JsonToDatabase {
                         //Generate query
                         queries.add(temp.generateSql());
 
-                       // Log.d(TAG, name);
+                        // Log.d(TAG, name);
 
                         fetchData(FossasiaUrls.PART_URL + url, venue, name, (i + 50) * 100);
 
 
                     } catch (JSONException e) {
-                      //  Log.e(TAG, "JSON Error: " + e.getMessage() + "\nResponse" + response);
+                        //  Log.e(TAG, "JSON Error: " + e.getMessage() + "\nResponse" + response);
                     }
 
                 }
@@ -194,6 +242,9 @@ public class JsonToDatabase {
 
     private void fetchData(String url, final String venue, final String forceTrack, final int id) {
 
+        Log.d(TAG, url);
+
+
         final RequestQueue queue = VolleySingleton.getReqQueue(context);
 
         // Request a string response from the provided URL.
@@ -202,7 +253,7 @@ public class JsonToDatabase {
             @Override
             public void onResponse(String response) {
                 JSONArray jsonArray = removePaddingFromString(response);
-               // Log.d(TAG, jsonArray.toString());
+                Log.d(TAG, jsonArray.toString());
 
                 String firstName;
                 String lastName;
@@ -259,8 +310,8 @@ public class JsonToDatabase {
                         moderator = jsonArray.getJSONObject(i).getJSONArray("c").getJSONObject(Constants.MODERATOR)
                                 .getString("v");
                         String logData = "First Name: %s\nLast Name: %s\nDate: %s\nTime: %s\nOrganization: %s\nEmail: %s\nBlog: %s\nTwitter: %s\nType Of Proposal: %s\nTopic Name:%s\nTrack: %s\nAbstarct: %s\nDescription: %s\nURL: %s";
-                      //  logData = String.format(logData, firstName, lastName, date, time, organization, email, blog, twitter, typeOfProposal, topicName, field, proposalAbstract, description, url);
-//                        Log.d(TAG, logData);
+                        //  logData = String.format(logData, firstName, lastName, date, time, organization, email, blog, twitter, typeOfProposal, topicName, field, proposalAbstract, description, url);
+                        //                        Log.d(TAG, logData);
                         int id2 = id + i;
                         if (date.equals("") || firstName.equals("") || time.equals("") || topicName.equals("")) {
                             continue;
@@ -277,12 +328,12 @@ public class JsonToDatabase {
                         queries.add(temp.generateSqlQuery());
                         String query = "INSERT INTO %s VALUES ('%s', %d, '%s');";
                         query = String.format(query, DatabaseHelper.TABLE_NAME_SPEAKER_EVENT_RELATION, fullName, id2, StringUtils.replaceUnicode(topicName));
-//                        Log.d(TAG, query);
+                        //                        Log.d(TAG, query);
                         queries.add(query);
 
 
                     } catch (JSONException e) {
-                     //   Log.e(TAG, "JSON Error: " + e.getMessage() + "\nResponse" + response);
+                        //   Log.e(TAG, "JSON Error: " + e.getMessage() + "\nResponse" + response);
                     }
 
                 }
@@ -320,7 +371,7 @@ public class JsonToDatabase {
             @Override
             public void onResponse(String response) {
                 JSONArray jsonArray = removePaddingFromString(response);
-              //  Log.d(TAG, jsonArray.toString());
+                //  Log.d(TAG, jsonArray.toString());
                 String trackName;
                 String trackInformation;
 
@@ -332,10 +383,10 @@ public class JsonToDatabase {
                                 .getString("v");
                         String query = "INSERT INTO %s VALUES (%d, '%s', '%s');";
                         query = String.format(query, DatabaseHelper.TABLE_NAME_TRACK, i, StringUtils.replaceUnicode(trackName), StringUtils.replaceUnicode(trackInformation));
-                       // Log.d(TAG, query);
+                        // Log.d(TAG, query);
                         queries.add(query);
                     } catch (JSONException e) {
-                      //  Log.e(TAG, "JSON Error: " + e.getMessage() + "\nResponse" + response);
+                        //  Log.e(TAG, "JSON Error: " + e.getMessage() + "\nResponse" + response);
                     }
 
                 }
@@ -368,7 +419,7 @@ public class JsonToDatabase {
             @Override
             public void onResponse(String response) {
                 JSONArray jsonArray = removePaddingFromString(response);
-               // Log.d(TAG, jsonArray.toString());
+                // Log.d(TAG, jsonArray.toString());
                 String speaker;
                 String event;
 
@@ -380,14 +431,14 @@ public class JsonToDatabase {
                                 .getString("v");
                         String query = "INSERT INTO %s VALUES ('%s', '%s');";
                         query = String.format(query, DatabaseHelper.TABLE_NAME_SPEAKER_EVENT_RELATION, speaker, event);
-//                        Log.d(TAG, query);
+                        //                        Log.d(TAG, query);
                         queries.add(query);
                     } catch (JSONException e) {
-                  //      Log.e(TAG, "JSON Error: " + e.getMessage() + "\nResponse" + response);
+                        //      Log.e(TAG, "JSON Error: " + e.getMessage() + "\nResponse" + response);
                     }
 
                 }
-//                speakerEventRelation = true;
+                //                speakerEventRelation = true;
                 checkStatus();
             }
         }
@@ -396,7 +447,7 @@ public class JsonToDatabase {
 
             @Override
             public void onErrorResponse(VolleyError error) {
-//                speakerEventRelation = true;
+                //                speakerEventRelation = true;
                 checkStatus();
             }
         }
@@ -417,7 +468,7 @@ public class JsonToDatabase {
             @Override
             public void onResponse(String response) {
                 JSONArray jsonArray = removePaddingFromString(response);
-               // Log.d(TAG, jsonArray.toString());
+                // Log.d(TAG, jsonArray.toString());
                 String name;
                 String designation;
                 String profilePicUrl;
@@ -442,14 +493,14 @@ public class JsonToDatabase {
                         isKeySpeaker = (int) jsonArray.getJSONObject(i).getJSONArray("c").getJSONObject(6)
                                 .getLong("v");
                         Speaker temp = new Speaker(i + 1, name, information, linkedInUrl, twitterHandle, designation, profilePicUrl, isKeySpeaker);
-//                        Log.d(TAG, temp.generateSqlQuery());
+                        //                        Log.d(TAG, temp.generateSqlQuery());
                         queries.add(temp.generateSqlQuery());
                     } catch (JSONException e) {
-               //         Log.e(TAG, "JSON Error: " + e.getMessage() + "\nResponse: " + response);
+                        //         Log.e(TAG, "JSON Error: " + e.getMessage() + "\nResponse: " + response);
                     }
 
                 }
-//                keySpeakerLoaded = true;
+                //                keySpeakerLoaded = true;
                 checkStatus();
             }
         }
@@ -458,7 +509,7 @@ public class JsonToDatabase {
 
             @Override
             public void onErrorResponse(VolleyError error) {
-//                keySpeakerLoaded = true;
+                //                keySpeakerLoaded = true;
                 checkStatus();
             }
         }
@@ -485,15 +536,19 @@ public class JsonToDatabase {
     private JSONArray removePaddingFromString(String response) {
         response = response.replaceAll("\"v\":null", "\"v\":\"\"");
         response = response.replaceAll("null", "{\"v\": \"\"}");
+
         response = response.substring(response.indexOf("(") + 1, response.length() - 2);
+        response = response.replaceAll("\"v\":\\bnew\\b(.*?)\\)", "\"v\":\"\"");
+        Log.d(TAG, response);
         try {
+
             JSONObject jObj = new JSONObject(response);
             jObj = jObj.getJSONObject("table");
             JSONArray jArray = jObj.getJSONArray("rows");
-//            Log.d(TAG, jArray.toString());
+            Log.d(TAG, jArray.toString());
             return jArray;
         } catch (JSONException e) {
-           // Log.e(TAG, "JSON Error: " + e.getMessage() + "\nResponse" + response);
+            Log.e(TAG, "JSON Error: " + e.getMessage() + "\nResponse" + response);
 
         }
 
